@@ -138,33 +138,16 @@ resource "aws_instance" "ec2_instance" {
   vpc_security_group_ids = [aws_security_group.ec2_security_group6.id]
   key_name               = "EmperorKP"
   count                  = 3
-
+  user_data            = file("install_k8s.sh")
   tags = {
     Name = "kubernetes server"
   }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("~/Downloads/EmperorKP.pem")
-    host = self.public_ip
-
-
+  root_block_device {
+  volume_size = 8
+}
 }
 
-  provisioner "file" {
-    source      = "install_k8s.sh"
-    destination = "/tmp/install_k8s.sh"
-
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-        "sudo chmod +x /tmp/install_k8s.sh",
-        "sudo su -c'bash /tmp/install_k8s.sh'",
-    ]
-  }
-}
+ 
 # print the url of the container
 output "container_url" {
  value = ["${aws_instance.ec2_instance.*.public_ip}"]
